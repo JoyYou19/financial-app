@@ -1,11 +1,17 @@
 import { db } from "@/db";
-import { transactions } from "@/db/schema";
 import { desc } from "drizzle-orm";
-import { plannedExpenses } from "@/db/schema";
+import {
+  apartmentItems,
+  categories,
+  fuelLogs,
+  plannedExpenses,
+  transactions,
+} from "@/db/schema";
 
 import { AddTransactionDialog } from "@/components/finance/add-transaction-dialog";
 import { FinanceTabs } from "@/components/finance/finance-tabs";
 import { SummaryCards } from "@/components/finance/summary-cards";
+import { SafeSpendCard } from "@/components/finance/safe-spend-card";
 
 export default async function Home() {
   const rows = await db
@@ -29,6 +35,22 @@ export default async function Home() {
     .from(plannedExpenses)
     .orderBy(desc(plannedExpenses.dueDate));
 
+  const fuel = await db
+    .select()
+    .from(fuelLogs)
+    .orderBy(desc(fuelLogs.createdAt))
+    .limit(100);
+
+  const categoryRows = await db
+    .select()
+    .from(categories)
+    .orderBy(categories.name);
+
+  const apartment = await db
+    .select()
+    .from(apartmentItems)
+    .orderBy(desc(apartmentItems.createdAt));
+
   return (
     <main className="min-h-screen bg-background p-4 pb-24 md:p-6">
       <div className="mx-auto flex max-w-6xl flex-col gap-6">
@@ -41,7 +63,7 @@ export default async function Home() {
           </div>
 
           <div className="hidden sm:block">
-            <AddTransactionDialog />
+            <AddTransactionDialog categories={categoryRows} />
           </div>
         </header>
 
@@ -51,11 +73,17 @@ export default async function Home() {
           balance={balance}
           plannedExpenses={planned}
         />
+        <SafeSpendCard balance={balance} plannedExpenses={planned} />
 
-        <FinanceTabs transactions={rows} plannedExpenses={planned} />
+        <FinanceTabs
+          transactions={rows}
+          plannedExpenses={planned}
+          fuelLogs={fuel}
+          apartmentItems={apartment}
+        />
 
         <div className="fixed inset-x-0 bottom-0 border-t bg-background p-4 sm:hidden">
-          <AddTransactionDialog />
+          <AddTransactionDialog categories={categoryRows} />
         </div>
       </div>
     </main>

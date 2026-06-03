@@ -22,8 +22,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { categories } from "@/db/schema";
 
-export function AddTransactionDialog() {
+type Category = typeof categories.$inferSelect;
+
+export function AddTransactionDialog({
+  categories,
+}: {
+  categories: Category[];
+}) {
   const [open, setOpen] = useState(false);
 
   async function action(formData: FormData) {
@@ -76,8 +83,21 @@ export function AddTransactionDialog() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="category">Category</Label>
-            <Input id="category" name="category" placeholder="Food" />
+            <div className="grid gap-2">
+              <Label>Category</Label>
+              <Select name="category" defaultValue="Food">
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="grid gap-2">
